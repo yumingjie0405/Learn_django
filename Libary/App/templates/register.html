@@ -1,78 +1,100 @@
+<!DOCTYPE html>
+<html>
 <head>
-  <style>
-    body {
-      background: #f6f6f6;
-      font-family: Arial, sans-serif;
-    }
-    .login-container {
-      background: #fff;
-      border: 1px solid #ccc;
-      box-shadow: 0 0 5px rgba(0, 0, 0, .1);
-      max-width: 400px;
-      margin: 0 auto;
-      padding: 20px;
-      margin-top: 50px;
-      text-align: center;
-    }
-    .login-container h2 {
-      margin-bottom: 20px;
-    }
-    .login-container label {
-      display: inline-block;
-      width: 100px;
-      margin-right: 10px;
-      text-align: right;
-    }
-    .login-container input[type="text"],
-    .login-container input[type="password"],
-    .login-container input[type="submit"],
-    .login-container input[type="reset"] {
-      display: inline-block;
-      padding: 5px;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-      margin-bottom: 10px;
-      width: 200px;
-      font-size: 14px;
-      box-sizing: border-box;
-    }
-    .login-container input[type="submit"] {
-      background: #42b983;
-      color: #fff;
-      border: none;
-      padding: 8px 15px;
-      margin-left: 10px;
-      border-radius: 4px;
-    }
-    .login-container input[type="submit"]:hover {
-      background: #53d68c;
-      cursor: pointer;
-    }
-    .login-container input[type="reset"] {
-      margin-left: 10px;
-    }
-    .login-container p {
-      margin-top: 20px;
-      font-size: 14px;
-    }
-  </style>
-</head>
+    <meta charset="utf-8">
+    <title>Register</title>
+    <style>
+        body {
+            background: #f6f6f6;
+            font-family: Arial, sans-serif;
+        }
 
-<div class="login-container">
-  <h2>注册</h2>
-  <div class="form-group">
-    <label for="username">用户名:</label>
-    <input type="text" class="form-control" id="username" name="username" required>
-  </div>
-  <div class="form-group">
-    <label for="password">密码:</label>
-    <input type="password" class="form-control" id="password" name="password" required>
-  </div>
-  <div class="form-group">
-    <label for="password2">确认密码:</label>
-    <input type="password" class="form-control" id="password2" name="password2" required>
-  </div>
-  <div class="form-group">
-    <button type="submit" class="btn btn-primary">注册</button>
-  </div>
+        .register-container {
+            background: #fff;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 5px rgba(0, 0, 0, .1);
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            margin-top: 50px;
+            text-align: center;
+        }
+
+        .register-container h2 {
+            margin-bottom: 20px;
+        }
+
+        .register-container label {
+            display: inline-block;
+            width: 80px;
+            margin-right: 10px;
+            text-align: right;
+        }
+
+        .register-container input[type="text"],
+        .register-container input[type="password"],
+        .register-container input[type="submit"],
+        .register-container input[type="reset"] {
+            display: inline-block;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            margin-bottom: 10px;
+            width: 200px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .register-container input[type="submit"] {
+            background: #42b983;
+            color: #fff;
+            border: none;
+        }
+
+        .register-container input[type="submit"]:hover {
+            background: #53d68c;
+            cursor: pointer;
+        }
+
+        .register-container input[type="reset"] {
+            margin-left: 10px;
+        }
+
+        .register-container p {
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .alert-danger {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+<div class="register-container">
+    <h2>注册页面</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-danger">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <label for="username">用户名:</label>
+        <input type="text" id="username" name="username" required>
+        <br>
+        <label for="password1">密码:</label>
+        <input type="password" id="password1" name="password1" required>
+        <br>
+        <label for="password2">确认密码:</label>
+        <input type="password" id="password2" name="password2" required>
+        <br>
+        <input type="submit" value="注册">
+        <input type="reset" value="重置">
+    </form>
+    <p>已有账号？<a href="{% url 'login' %}">现在登陆</a></p>
 </div>
+</body>
+</html>
