@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Login</title>
+    <style>
+        body {
+            background: #f6f6f6;
+            font-family: Arial, sans-serif;
+        }
+
+        .login-container {
+            background: #fff;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 5px rgba(0, 0, 0, .1);
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            margin-top: 50px;
+            text-align: center;
+        }
+
+        .login-container h2 {
+            margin-bottom: 20px;
+        }
+
+        .login-container label {
+            display: inline-block;
+            width: 80px;
+            margin-right: 10px;
+            text-align: right;
+        }
+
+        .login-container input[type="text"],
+        .login-container input[type="password"],
+        .login-container input[type="submit"],
+        .login-container input[type="reset"] {
+            display: inline-block;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            margin-bottom: 10px;
+            width: 200px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .login-container input[type="submit"] {
+            background: #42b983;
+            color: #fff;
+            border: none;
+        }
+
+        .login-container input[type="submit"]:hover {
+            background: #53d68c;
+            cursor: pointer;
+        }
+
+        .login-container input[type="reset"] {
+            margin-left: 10px;
+        }
+
+        .login-container p {
+            margin-top: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+<div class="login-container">
+    <h2>登陆页面</h2>
+
+{% if form.errors %}
+    {% for field in form %}
+        {% for error in field.errors %}
+            <div class="alert alert-danger">{{ error }}</div>
+        {% endfor %}
+    {% endfor %}
+{% endif %}
+
+    <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        <label for="username">用户名:</label>
+        <input type="text" id="username" name="username" required>
+        <br>
+        <label for="password">密码:</label>
+        <input type="password" id="password" name="password" required>
+        <br>
+        <label for="verification_code">验证码:</label>
+        <input type="text" id="verification_code" name="verification_code" required>
+        <br>
+        <img src="{% url 'get_verification_code' %}" alt="验证码">
+        <br>
+        <input type="submit" value="登陆">
+    </form>
+    <p>还没有账号？<a href="{% url 'register' %}">现在注册</a></p>
+</div>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %}</title>
+    {% block head %}
+    {% endblock %}
+     <style>
+      body {
+        background: #f6f6f6;
+        font-family: Arial, sans-serif;
+      }
+      /* Add your styles here */
+      .form-group {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body>
+{% if user.is_authenticated %}
+    <p>Welcome {{ user.username }}!</p>
+    <a href="{% url 'logout' %}">Logout</a>
+{% else %}
+    <a href="{% url 'login' %}">Login</a>
+{% endif %}
+
+{% block content %}
+{% endblock %}
+</body>
+
+</html>
