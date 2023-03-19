@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ book.book_name }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+        }
+
+        th {
+            text-align: left;
+            padding: 10px;
+            background-color: #eee;
+            border-bottom: 1px solid #ddd;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        h1, h2 {
+            text-align: center;
+        }
+
+        form {
+            max-width: 600px;
+            margin: 20px auto;
+        }
+
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #3e8e41;
+        }
+
+        button[type="submit"] {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 10px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #d32f2f;
+        }
+
+        .error {
+            color: #f00;
+            margin: 10px 0;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<h1>{{ book.book_name }}</h1>
+<table>
+    <tr>
+        <th>书名：</th>
+        <td>{{ book.book_name }}</td>
+    </tr>
+    <tr>
+        <th>作者：</th>
+        <td>{{ book.editor }}</td>
+    </tr>
+    <tr>
+        <th>价格：</th>
+        <td>{{ book.price }}</td>
+    </tr>
+    <tr>
+        <th>分类：</th>
+        <td>{{ book.category }}</td>
+    </tr>
+    <tr>
+        <th>出版日期：</th>
+        <td>{{ book.publish_date }}</td>
+    </tr>
+</table>
+
+<h2>修改书籍信息</h2>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="保存">
+</form>
+
+{% if form.errors %}
+    <div class="error">
+        <ul>
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <li>{{ field.label }}: {{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+
+<form method="POST" action="{% url 'book_delete' pk=book.pk %}">
+    {% csrf_token %}
+    <input type="hidden" name="method" value="delete">
+    <button type="submit" onclick="return confirmDelete()">删除</button>
+</form>
+

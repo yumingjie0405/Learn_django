@@ -1,14 +1,16 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
+from django.core.exceptions import ValidationError
+from django.contrib.auth import authenticate, login
+from django.db.models import Count
+from django.urls import reverse
+from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
-from .forms import UserLoginForm, UserRegistrationForm, BookForm
-import random
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import Book
-from django.http import HttpResponse
 
+from .forms import UserLoginForm
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponse, HttpResponseRedirect
 from .models import Book
 
 
@@ -36,6 +38,13 @@ def user_login(request):
     return render(request, 'login.html', {'form': form})
 
 
+from django.contrib.auth import logout
+
+
+def user_logout(request):
+    return render(request, 'login.html')
+
+
 def user_registration(request):
     if request.method == 'POST':
         username = request.POST['username']
@@ -60,7 +69,9 @@ def user_registration(request):
 
 def main_page(request):
     books = Book.objects.all()
-    return render(request, 'main.html', {'books': books})
+
+
+    return render(request, 'main.html',{'books': books})
 
 
 from PIL import Image, ImageDraw, ImageFont
@@ -89,50 +100,22 @@ def logout_view(request):
     return redirect('login')
 
 
-from django.views.generic import ListView, UpdateView, DeleteView
-from django.urls import reverse_lazy
-
-
-class BookListView(ListView):
-    model = Book
-    template_name = 'main.html'
-    context_object_name = 'books'
-
-
-class BookUpdateView(UpdateView):
-    model = Book
-    fields = ['book_name', 'price', 'publish_date', 'category', 'editor']
-    template_name_suffix = '_update_form'
-
-
-class BookDeleteView(DeleteView):
-    model = Book
-    success_url = reverse_lazy('main')
-    template_name_suffix = '_confirm_delete'
-
-
 from .forms import BookForm
 
 
-def edit_book(request, book_id):
-    book = get_object_or_404(Book, id=book_id)
+def edit_book(request, pk):
+    book = get_object_or_404(Book, pk=pk)
     if request.method == 'POST':
         form = BookForm(request.POST, instance=book)
         if form.is_valid():
             form.save()
-            return redirect('book_list')
+            return redirect('main')
     else:
         form = BookForm(instance=book)
-    return render(request, 'edit_book.html', {'form': form})
+    return render(request, 'book_edit.html', {'form': form})
 
 
 # 删除图书信息
-
-
-def delete_book(request, book_id):
-    book = get_object_or_404(Book, id=book_id)
-    book.delete()
-    return redirect('book_list')
 
 
 from django.views.generic.edit import CreateView
@@ -147,16 +130,34 @@ class CreateBookView(CreateView):
 from django.shortcuts import render, redirect
 from .forms import BookForm
 
+'''
+首先检查请求的方法是否为 POST。如果是，
+我们就尝试从 POST 请求中获取图书的相关信息，
+并创建一个新的 Book 对象。然后，
+我们调用 full_clean 方法来验证该对象的字段是否符合要求。
+如果字段验证通过，则将该对象保存到数据库，
+并将 book 对象传递给 main.html 模板进行显示。
+'''
+
 
 def add_book(request):
     if request.method == 'POST':
-        form = BookForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('book_list')
+        try:
+            book = Book(
+                book_name=request.POST['book_name'],
+                editor=request.POST['editor'],
+                price=request.POST['price'],
+                category=request.POST['category'],
+                publish_date=request.POST['publish_date']
+            )
+            book.full_clean()  # 验证字段
+            book.save()
+            messages.success(request, '图书添加成功！')
+            return redirect('main')
+        except ValidationError as e:
+            return render(request, 'add_book.html', {'error_message': str(e)})
     else:
-        form = BookForm()
-    return render(request, 'add_book.html', {'form': form})
+        return render(request, 'add_book.html')
 
 
 from django.views.generic import TemplateView
@@ -176,25 +177,95 @@ def delete_books(request):
     return redirect('main')
 
 
-def edit_book(request, pk):
+def book_detail(request, pk):
     book = get_object_or_404(Book, pk=pk)
-    form = BookForm(request.POST or None, instance=book)
     if request.method == 'POST':
+        form = BookForm(request.POST, instance=book)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Book updated successfully.')
+            messages.success(request, '图书修改成功！')
+            # return render(request, 'book_detail.html', {'form': form, 'book': book})
             return redirect('main')
-        else:
-            messages.error(request, 'Book update failed. Please check the form data.')
-    context = {'form': form}
-    return render(request, 'edit_book.html', context)
+    else:
+        form = BookForm(instance=book)
+    return render(request, 'book_detail.html', {'form': form, 'book': book})
 
 
 def delete_book(request, pk):
     book = get_object_or_404(Book, pk=pk)
+
     if request.method == 'POST':
         book.delete()
-        messages.success(request, 'Book deleted successfully.')
+        messages.success(request, '删除成功！')
         return redirect('main')
-    context = {'book': book}
-    return render(request, 'delete_book.html', context)
+
+    return render(request, 'book_detail.html', {'book': book})
+
+
+from django.shortcuts import render
+from pyecharts.charts import Bar, Pie
+from pyecharts import options as opts
+from pyecharts.charts import Bar, Line
+def chart_view(request):
+    # 获取所有的图书和类别信息
+    book_category = Book.objects.values('category').annotate(count=Count('book_id'))
+    category = [i['category'] for i in book_category]
+    book_count = [i['count'] for i in book_category]
+    pie_chart = Pie()
+    pie_chart.add('', list(zip(category, book_count)))
+    pie_chart.set_series_opts(label_opts=opts.LabelOpts(formatter="{b}: {c}"))
+    pie_chart = pie_chart.render_embed()
+
+    # 获取所有的图书和价格信息
+    book_price = Book.objects.values_list('book_name', 'price')
+    book_title = [i[0] for i in book_price]
+    price = [i[1] for i in book_price]
+    bar_chart = Bar()
+    bar_chart.add_xaxis(book_title)
+    bar_chart.add_yaxis('', price)
+    bar_chart.set_series_opts(label_opts=opts.LabelOpts(formatter="{c}元"))
+    bar_chart = bar_chart.render_embed()
+
+    return render(request, 'chart.html', {'pie_chart': pie_chart, 'bar_chart': bar_chart})
+
+from django.db.models import Q
+from django.views.generic import ListView
+from .models import Book
+
+class BookSearchView(ListView):
+    model = Book
+    template_name = 'search_result.html'
+    context_object_name = 'books'
+
+    def get_queryset(self):
+        query = self.request.GET.get('search')
+        object_list = Book.objects.filter(
+            Q(book_name__icontains=query) | Q(category__icontains=query) | Q(editor__icontains=query)
+        )
+        return object_list
+
+import requests
+
+def get_weather(city):
+    api_key = 'ba1a771c3f456c87b89e5d78db03e9cd'  # 替换为你自己的API key
+    url = f'https://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}'
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        weather = data['weather'][0]['main']
+        temperature = data['main']['temp'] - 273.15  # 转换为摄氏度
+        return f"{city}天气：{weather}，温度：{temperature:.1f}℃"
+    else:
+        return f"{city}天气获取失败"
+
+class IndexView(LoginRequiredMixin, View):
+    login_url = 'login.html'
+
+    def get(self, request):
+        city = '芜湖'  # 这里可以替换成你要显示的城市
+        weather = get_weather(city)
+        print(weather)
+        context = {
+            'weather': weather,
+        }
+        return render(request, 'index.html', context)

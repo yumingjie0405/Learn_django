@@ -101,24 +101,52 @@
         }
 
     </style>
+    <script>
+    const apiKey = '4e3d5d177cc9e61c43ec069750cb665c';
+    const city = '芜湖';
+    const apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}`;
+
+    fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+            const city = data.name;
+            const temp = Math.round(data.main.temp - 273.15);
+            const weather = data.weather[0].main;
+            document.getElementById('city').textContent = city + ': ';
+            document.getElementById('temp').textContent = temp + '℃, ';
+            document.getElementById('weather').textContent = weather;
+        })
+        .catch(error => console.error(error));
+</script>
 </head>
 <body>
 <div class="header">
     <h1 class="header__title">图书管理系统</h1>
+
+    <div class="header__weather">
+        <span id="city"></span>
+        <span id="temp"></span>
+        <span id="weather"></span>
+    </div>
     <div class="header__user">
-        欢迎您，{{  user.username  }}
+        <a href="{% url 'logout' %}">Logout</a>
+        欢迎您，{{ user.username }}
     </div>
 </div>
 <div style="text-align: center;">
     <div class="form-group">
-        <label for="search">搜索：</label>
-        <input type="text" id="search" name="search" style="width: 200px; height: 30px; border-radius: 5px;">
-        <a href="#" class="btn">搜索</a>
+        <form method="get" action="{% url 'search' %}">
+            <div class="form-group">
+                <label for="search">搜索：</label>
+                <input type="text" id="search" name="search" style="width: 200px; height: 30px; border-radius: 5px;">
+                <button type="submit" class="btn btn-primary">搜索</button>
+            </div>
+        </form>
     </div>
     <div>
-        <a href="#" class="btn">新增</a>
-        <a href="#" class="btn">删除</a>
-        <a href="/chart" class="btn">统计分析</a>
+        <a href="{% url 'add_book' %}" class="btn">新增</a>
+
+        <a href="{% url 'chart' %}" class="btn" target="_blank">统计分析</a>
     </div>
 </div>
 <table class="table">
@@ -127,23 +155,31 @@
         <th>编号</th>
         <th>书名</th>
         <th>作者</th>
+        <th>价格</th>
+        <th>类别</th>
         <th>出版日期</th>
-        <th>简介</th>
         <th>操作</th>
     </tr>
     </thead>
     <tbody>
     {% for book in books %}
-    <tr>
-        <td>{{ book.0 }} <input type="checkbox" name="id" value="{{ stu.0 }}"></td>
-        <td>{{ book.1 }}</td>
-        <td>{{ book.3 }}</td>
-        <td>{{ book.4 }}</td>
-        <td></td>
-        <td><a href="#">修改</a></td>
-    </tr>
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ book.book_name }}</td>
+            <td>{{ book.editor }}</td>
+            <td>{{ book.price }}</td>
+            <td>{{ book.category }}</td>
+            <td>{{ book.publish_date }}</td>
+            <td><a href="{% url 'book_detail' pk=book.book_id %}">修改</a></td>
+        </tr>
     {% endfor %}
     </tbody>
 </table>
 
 </body>
+
+
+
+
+
+
